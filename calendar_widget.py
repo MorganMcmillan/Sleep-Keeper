@@ -3,21 +3,24 @@ from datetime import date
 from functools import partial
 from sleep_input_window import day_clicked, get_sleep_color
 
-def make_calendar(root, todays_date: date, month_sleep_info, hours_of_sleep_needed, con, cur):
-    day_offset = 3
-    calendar = tk.Frame(bg="orange2")
-    for i in range(1, get_days_in_month(todays_date.month, todays_date.year) + 1):
-        day_sleep_info = month_sleep_info.get(i)
-        (bg, fg) = get_sleep_color(day_sleep_info and day_sleep_info[1], hours_of_sleep_needed)
-        this_date = date(todays_date.year, todays_date.month, i)
-        day = tk.Button(calendar, text=i, width=3, fg=fg, bg=bg)
-        day.config(command=partial(day_clicked, day, this_date, root, con, cur))
-        # Highlight today
-        if i == todays_date.day:
-            day.config(fg="deep sky blue")
-        day.grid(column=(i - 1 + day_offset)%7, row=(i - 1 + day_offset)//7)
+class Calendar:
+    def __init__(self, root, bg, todays_date: date, month_sleep_info, hours_of_sleep_needed, con, cur):
+        self.frame = tk.Frame(bg=bg)
+        self.days = [None] * 31
+        # Offsets the first calendar day by what day of the week it is
+        day_offset = date(todays_date.year, todays_date.month, 1).isoweekday()
+        for i in range(1, get_days_in_month(todays_date.month, todays_date.year) + 1):
+            day_sleep_info = month_sleep_info.get(i)
+            (bg, fg) = get_sleep_color(day_sleep_info and day_sleep_info[0], hours_of_sleep_needed)
+            this_date = date(todays_date.year, todays_date.month, i)
 
-    return calendar
+            day = tk.Button(self.frame, text=i, width=3, fg=fg, bg=bg)
+            day.config(command=partial(day_clicked, day, this_date, root, con, cur))
+            # Highlight today
+            if i == todays_date.day:
+                day.config(fg="deep sky blue")
+            day.grid(column=(i - 1 + day_offset)%7, row=(i - 1 + day_offset)//7)
+            self.days[i - 1] = day
 
 DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 

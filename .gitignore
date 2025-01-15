@@ -1,2 +1,2 @@
-sleep.db
+*.db
 __pycache__/
