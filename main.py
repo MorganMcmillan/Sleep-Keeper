@@ -7,6 +7,11 @@ from functools import partial
 from sleep_input_window import day_clicked
 
 BACKGROUND = "orange2"
+# TODO: Set this to false for release versions
+DEBUG = True
+
+def icon(name: str):
+    return tk.PhotoImage(file=f"icons/{name}.png")
 
 def get_month_sleep_info(cur: sql.Cursor, today):
     cur.execute(f"SELECT * FROM sleep WHERE date LIKE '{today.year}-%{today.month}-%';")
@@ -20,6 +25,7 @@ def main():
     root.title("Sleep Keeper")
     root.geometry("216x200")
     root.config(bg=BACKGROUND)
+    root.minsize(344, 0)
     
     # Init DB
     # TODO: store this in an OS appropriate place, like appdata
@@ -46,6 +52,7 @@ def main():
     calendar = Calendar(root, BACKGROUND, today, month_sleep_info, 8, con, cur)
     calendar.frame.pack(anchor="n")
 
+    # Pester the user to enter their sleep information if they haven't today
     def add_today_button():
         if add_today_button.shown:
             return
@@ -63,10 +70,23 @@ def main():
     if cur.fetchone() is None:
         add_today_button()
 
-    # Bind key events
-    root.bind("s", lambda _: print(root.winfo_width(), root.winfo_height()))
+    # Add sidebar for misc widgets
+    sidebar = tk.Frame(root, bg="yellow", width=48, height=4096)
+    sidebar.place(x=0, y=0)
+    sidebar.pack_propagate(False)
+
+    # TODO: add a window that displays the overall stats of the user's sleep (sleep debt, average bedtime, average wakeup time, Etc.)
+    img_bed = icon("bed")
+    btn_sleep_stats = tk.Button(sidebar, width=32, height=32, image=img_bed)
+    btn_sleep_stats.pack(anchor="n")
+
+    # Bind events
     root.bind("<<today's_info_deleted>>", lambda _: add_today_button())
     root.bind("<<today's_info_recorded>>", lambda _: remove_today_button())
+    
+    if DEBUG:
+        # Bind debug keys
+        root.bind("s", lambda _: print(root.winfo_width(), root.winfo_height()))
 
     root.mainloop()
 
