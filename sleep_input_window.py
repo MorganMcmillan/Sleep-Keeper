@@ -19,14 +19,14 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
 
     def update_sleep_info(slept_at, hours_slept):
         delete_children(info_frame)
-        tk.Label(info_frame, text=f"Hours of sleep today: {hours_slept}").pack(anchor="nw")
-        tk.Label(info_frame, text=f"Went to sleep at: {slept_at}").pack(anchor="nw")
+        tk.Label(info_frame, text=f"Hours of sleep today: {hours_slept}").pack(anchor="n")
+        tk.Label(info_frame, text=f"Went to sleep at: {slept_at}").pack(anchor="n")
 
     tk.Label(sub, text=f"Date: {current_date}").pack(anchor="n")
     info_frame = tk.Frame(sub)
     if sleep_info:
         update_sleep_info(sleep_info[0], sleep_info[1])
-    info_frame.pack(anchor="nw")
+    info_frame.pack(anchor="n")
 
 
     sleep_frame = tk.Frame(sub)
