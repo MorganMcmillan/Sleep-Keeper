@@ -54,18 +54,20 @@ def main():
 
     # Pester the user to enter their sleep information if they haven't today
     def add_today_button():
-        if add_today_button.shown:
+        if add_today_button.shown: # Prevent button from being added twice
             return
         global enter_today_btn
         enter_today_btn = tk.Button(root, text="Enter today's sleep info!", command=partial(day_clicked, calendar.days[today.day - 1], today, root, con, cur))
         enter_today_btn.pack(anchor="n", pady=8)
         add_today_button.shown = True
+    # Cursed method to implement static variables in python
     add_today_button.shown = False
 
     def remove_today_button():
         enter_today_btn.destroy()
         add_today_button.shown = False
 
+    # Check if sleep info exists from today
     cur.execute("SELECT date FROM sleep WHERE date = ?;", (str(today),))
     if cur.fetchone() is None:
         add_today_button()

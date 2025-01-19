@@ -22,7 +22,7 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
         tk.Label(info_frame, text=f"Hours of sleep today: {hours_slept}").pack(anchor="nw")
         tk.Label(info_frame, text=f"Went to sleep at: {slept_at}").pack(anchor="nw")
 
-    tk.Label(sub, text=f"Date: {current_date}").pack(anchor="nw")
+    tk.Label(sub, text=f"Date: {current_date}").pack(anchor="n")
     info_frame = tk.Frame(sub)
     if sleep_info:
         update_sleep_info(sleep_info[0], sleep_info[1])
@@ -37,13 +37,13 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
     am_pm = tk.Variable(value=["A.M.", "P.M."])
     listbox = tk.Listbox(sleep_frame, selectmode="single", listvariable=am_pm, height=2, width=4)
     listbox.grid(row=0, column=2)
-    sleep_frame.pack(anchor="nw")
+    sleep_frame.pack(anchor="n")
 
     hours_frame = tk.Frame(sub)
     tk.Label(hours_frame, text="Enter hours slept").grid(row=0, column=0)
     hours_slept = tk.DoubleVar()
     tk.Entry(hours_frame, textvariable=hours_slept).grid(row=0, column=1)
-    hours_frame.pack(anchor="nw")
+    hours_frame.pack(anchor="n")
 
     def update_todays_color(button, hours, needed):
         (bg, fg) = get_sleep_color(hours, needed)
@@ -59,9 +59,9 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
             else:
                 time_slept_at = slept_at.get() + " P.M."
 
-        validate_hour(time_slept_at)
+        time_slept_at = validate_hour(time_slept_at)
         
-        try:
+        try: # to actually insert/replace today's sleep information
             cur.execute("INSERT OR REPLACE INTO sleep (date, hours_slept, slept_at) VALUES (?, ?, ?);", (str(current_date), hours_slept.get(), time_slept_at))
             con.commit()
             update_todays_color(button, hours_slept.get(), 8)
@@ -74,7 +74,6 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
         except Exception as err:
             messagebox.showerror("Error!", err)
 
-
     def delete_sleep_info():
         cur.execute("DELETE FROM sleep WHERE date = ?;", (str(current_date),))
         con.commit()
@@ -84,10 +83,10 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
 
     button_group = tk.Frame(sub)
     record_btn = tk.Button(button_group, text="Record", command=record_sleep_info)
-    record_btn.grid(row=0, column=0)
+    record_btn.pack(side="left")
     delete_btn = tk.Button(button_group, text="Delete", command=delete_sleep_info)
-    delete_btn.grid(row=0, column=1)
-    button_group.pack(anchor="nw")
+    delete_btn.pack(side="left", padx=16)
+    button_group.pack(anchor="n")
 
 
 def get_sleep_color(hours_slept: float, hours_of_sleep_needed: float):
@@ -122,7 +121,14 @@ class InvalidHourError(Exception):
         message = f"Invalid hour entered. Hours should contain only numbers, and be within the range of 1:00 to 12:59. (Got: {malformed_hour})"
         super().__init__(message)
 
+# Checks
 def validate_hour(hour: str):
     import re
-    if not re.match("^\\d{1,2}:\\d{2} [A|P].M.", hour):
+    hour_match = re.search("^\\d{1,2}:\\d{2}", hour)
+    if hour_match is None:
         raise InvalidHourError(hour)
+    
+    am_pm_match = re.search("[A|P]\\.M\\.", hour)
+    if am_pm_match is None:
+        raise InvalidHourError(hour)
+    return hour_match.group(0) + " " + am_pm_match.group(0)
