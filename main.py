@@ -19,6 +19,14 @@ def get_month_sleep_info(cur: sql.Cursor, today):
     month_sleep_info = { date.fromisoformat(row[0]).day: row[1:3] for row in rows}
     return month_sleep_info
 
+def running_sleep_debt(cur: sql.Cursor):
+    from itertools import accumulate
+    debts = cur.execute("SELECT date, 8 - hours_slept FROM sleep ORDER BY date;").fetchall()
+    print(debts)
+    accumulated_sleep_debts = list(accumulate(map(lambda x: x[1] ,debts)))
+    print(accumulated_sleep_debts)
+
+
 def main():
     # Init window
     root = tk.Tk()
@@ -88,6 +96,7 @@ def main():
     
     if DEBUG:
         # Bind debug keys
+        root.bind("a", lambda _: running_sleep_debt(cur))
         root.bind("s", lambda _: print(root.winfo_width(), root.winfo_height()))
 
     root.mainloop()

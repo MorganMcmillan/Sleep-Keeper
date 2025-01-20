@@ -31,8 +31,8 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
 
     sleep_frame = tk.Frame(sub)
     tk.Label(sleep_frame, text="Enter the time you fell asleep at (Ex: 11:00)").grid(row=0, column=0)
-    slept_at = tk.StringVar()
-    tk.Entry(sleep_frame, textvariable=slept_at).grid(row=0, column=1)
+    var_slept_at = tk.StringVar()
+    tk.Entry(sleep_frame, textvariable=var_slept_at).grid(row=0, column=1)
     # Use option list for "A.M" or "P.M" to prevent inconsistent formatting
     am_pm = tk.Variable(value=["A.M.", "P.M."])
     listbox = tk.Listbox(sleep_frame, selectmode="single", listvariable=am_pm, height=2, width=4)
@@ -41,8 +41,8 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
 
     hours_frame = tk.Frame(sub)
     tk.Label(hours_frame, text="Enter hours slept").grid(row=0, column=0)
-    hours_slept = tk.DoubleVar()
-    tk.Entry(hours_frame, textvariable=hours_slept).grid(row=0, column=1)
+    var_hours_slept = tk.StringVar()
+    tk.Entry(hours_frame, textvariable=var_hours_slept).grid(row=0, column=1)
     hours_frame.pack(anchor="n")
 
     def update_todays_color(button, hours, needed):
@@ -52,25 +52,26 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
 
     def record_sleep_info():
         try:
-            time_slept_at = slept_at.get() + " " + am_pm.get()[listbox.curselection()[0]]
+            time_slept_at = var_slept_at.get() + " " + am_pm.get()[listbox.curselection()[0]]
         except IndexError:
-            if len(slept_at.get()) == 0:
+            if len(var_slept_at.get()) == 0:
                 time_slept_at = "12:00 A.M."
             else:
-                time_slept_at = slept_at.get() + " P.M."
+                time_slept_at = var_slept_at.get() + " P.M."
 
-        time_slept_at = validate_hour(time_slept_at)
+        time_slept_at = validate_time(time_slept_at)
+        hours_slept = validate_hour(var_hours_slept.get())
         
         try: # to actually insert/replace today's sleep information
-            cur.execute("INSERT OR REPLACE INTO sleep (date, hours_slept, slept_at) VALUES (?, ?, ?);", (str(current_date), hours_slept.get(), time_slept_at))
+            cur.execute("INSERT OR REPLACE INTO sleep (date, hours_slept, slept_at) VALUES (?, ?, ?);", (str(current_date), hours_slept, time_slept_at))
             con.commit()
-            update_todays_color(button, hours_slept.get(), 8)
-            update_sleep_info(time_slept_at, hours_slept.get())
+            update_todays_color(button, hours_slept, 8)
+            update_sleep_info(time_slept_at, hours_slept)
             root.event_generate("<<today's_info_recorded>>", when="tail")
         except sql.IntegrityError as err:
             messagebox.showerror("Integrity error!", err)
-        except InvalidHourError as err:
-            messagebox.showerror("Invalid hour entered!", err)
+        except InvalidTimeError as err:
+            messagebox.showerror("Invalid time entered!", err)
         except Exception as err:
             messagebox.showerror("Error!", err)
 
@@ -116,19 +117,29 @@ def delete_children(widget):
     for child in children:
         child.destroy()
 
-class InvalidHourError(Exception):
+class InvalidTimeError(Exception):
     def __init__(self, malformed_hour):
         message = f"Invalid hour entered. Hours should contain only numbers, and be within the range of 1:00 to 12:59. (Got: {malformed_hour})"
         super().__init__(message)
 
-# Checks
+# Checks hour format
+def validate_time(time: str):
+    import re
+    hour_match = re.search("^1?\\d:[0-5]\\d", time)
+    if hour_match is None:
+        raise InvalidTimeError(time)
+    
+    am_pm_match = re.search("[A|P]\\.M\\.", time)
+    if am_pm_match is None:
+        raise InvalidTimeError(time)
+    return hour_match.group(0) + " " + am_pm_match.group(0)
+
 def validate_hour(hour: str):
     import re
-    hour_match = re.search("^\\d{1,2}:\\d{2}", hour)
-    if hour_match is None:
-        raise InvalidHourError(hour)
-    
-    am_pm_match = re.search("[A|P]\\.M\\.", hour)
-    if am_pm_match is None:
-        raise InvalidHourError(hour)
-    return hour_match.group(0) + " " + am_pm_match.group(0)
+    try: # to parse hour as a decimal
+        return float(hour)
+    except: # Maybe it's in the format of "hh:mm"?
+        hour_match = re.match("(\\d{1,2}):([0-5]\\d)", hour)
+        if hour_match is None:
+            raise InvalidTimeError(hour)
+        return int(hour_match.group(1)) + int(hour_match.group(2)) / 60
