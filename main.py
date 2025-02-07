@@ -26,6 +26,20 @@ def running_sleep_debt(cur: sql.Cursor):
     accumulated_sleep_debts = list(accumulate(map(lambda x: x[1] ,debts)))
     print(accumulated_sleep_debts)
 
+def init_db(cur):
+    # `date` is stored in the format of YYYY-MM-DD
+    # `slept_at` is stored as HH:MM A.M.|P.M.
+    cur.execute("""CREATE TABLE IF NOT EXISTS sleep (
+        date TEXT PRIMARY KEY,
+        hours_slept FLOAT,
+        slept_at TEXT,
+        CONSTRAINT valid_hour_format CHECK (slept_at LIKE '%_:__ _.M.'),
+        CONSTRAINT hours_slept_within_range CHECK (hours_slept BETWEEN 0 and 24)
+    );""")
+
+    cur.execute("""CREATE TABLE IF NOT EXISTS sleep_debt_paid (
+        date TEXT PRIMARY KEY REFERENCES sleep (date)
+    );""")
 
 def main():
     # Init window
@@ -40,17 +54,7 @@ def main():
     con = sql.connect("sleep.db")
     cur = con.cursor()
 
-    # `date` stored in the format of YYYY-MM-DD
-    # `slept_at` is stored as HH:MM A.M.|P.M.
-
-    cur.execute("""CREATE TABLE IF NOT EXISTS sleep (
-        date TEXT PRIMARY KEY,
-        hours_slept FLOAT,
-        slept_at TEXT,
-        sleep_debt_paid BOOLEAN DEFAULT FALSE,
-        CONSTRAINT valid_hour_format CHECK (slept_at LIKE '%_:__ _.M.'),
-        CONSTRAINT hours_slept_within_range CHECK (hours_slept BETWEEN 0 and 24)
-    );""")
+    init_db(con, cur)
 
     # Get this month's info
     today = date.today()
@@ -89,6 +93,8 @@ def main():
     img_bed = icon("bed")
     btn_sleep_stats = tk.Button(sidebar, width=32, height=32, image=img_bed)
     btn_sleep_stats.pack(anchor="n")
+
+    # TODO: add a button that allows the user to enter their sleep goals
 
     # Bind events
     root.bind("<<today's_info_deleted>>", lambda _: add_today_button())
