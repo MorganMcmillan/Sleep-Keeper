@@ -1,7 +1,8 @@
 import tkinter as tk
+from idlelib.tooltip import Hovertip
 from datetime import date
 from functools import partial
-from sleep_input_window import day_clicked, get_sleep_color
+from sleep_input_window import day_clicked, get_sleep_color, format_hour
 
 class Calendar:
     def __init__(self, root, bg, todays_date: date, month_sleep_info, hours_of_sleep_needed, con, cur):
@@ -14,9 +15,11 @@ class Calendar:
         for i in range(1, get_days_in_month(todays_date.month, todays_date.year) + 1):
             day_sleep_info = month_sleep_info.get(i)
             (bg, fg) = get_sleep_color(day_sleep_info and day_sleep_info[0], hours_of_sleep_needed)
+            tooltip = f"{format_hour(day_sleep_info[0])} hours\n{day_sleep_info[1]}" if day_sleep_info else "Not recorded"
             this_date = date(todays_date.year, todays_date.month, i)
 
             day = tk.Button(self.frame, text=i, width=3, fg=fg, bg=bg)
+            Hovertip(day, tooltip)
             # `partial` is used to bind variables to function arguments for later use
             # This means that when this day is clicked, this function will be called with the exact same arguments
             day.config(command=partial(day_clicked, day, this_date, root, con, cur))

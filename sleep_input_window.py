@@ -1,5 +1,7 @@
+import math
 import tkinter as tk
 from tkinter import messagebox
+from idlelib.tooltip import Hovertip
 import sqlite3 as sql
 from datetime import date
 
@@ -19,7 +21,7 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
 
     def update_sleep_info(slept_at, hours_slept):
         delete_children(info_frame)
-        tk.Label(info_frame, text=f"Hours of sleep today: {hours_slept}").pack(anchor="n")
+        tk.Label(info_frame, text=f"Hours of sleep today: {format_hour(hours_slept)}").pack(anchor="n")
         tk.Label(info_frame, text=f"Went to sleep at: {slept_at}").pack(anchor="n")
 
     tk.Label(sub, text=f"Date: {current_date}").pack(anchor="n")
@@ -27,7 +29,6 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
     if sleep_info:
         update_sleep_info(sleep_info[0], sleep_info[1])
     info_frame.pack(anchor="n")
-
 
     sleep_frame = tk.Frame(sub)
     tk.Label(sleep_frame, text="Enter the time you fell asleep at (Ex: 11:00)").grid(row=0, column=0)
@@ -50,6 +51,10 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
         fg = "deep sky blue" if current_date == today else fg
         button.config(bg=bg, fg=fg)
 
+    def update_todays_tooltip(button, hours, slept_at):
+        tooltip = f"{format_hour(hours)} hours\n{slept_at}"
+        Hovertip(button, tooltip)
+
     def record_sleep_info():
         try:
             time_slept_at = var_slept_at.get() + " " + am_pm.get()[listbox.curselection()[0]]
@@ -66,6 +71,7 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
             cur.execute("INSERT OR REPLACE INTO sleep (date, hours_slept, slept_at) VALUES (?, ?, ?);", (str(current_date), hours_slept, time_slept_at))
             con.commit()
             update_todays_color(button, hours_slept, 8)
+            update_todays_tooltip(button, hours_slept, time_slept_at)
             update_sleep_info(time_slept_at, hours_slept)
             root.event_generate("<<today's_info_recorded>>", when="tail")
         except sql.IntegrityError as err:
@@ -79,6 +85,7 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
         cur.execute("DELETE FROM sleep WHERE date = ?;", (str(current_date),))
         con.commit()
         update_todays_color(button, None, 8)
+        Hovertip(button, "Not recorded")
         delete_children(info_frame)
         root.event_generate("<<today's_info_deleted>>", when="tail")
 
@@ -143,3 +150,6 @@ def validate_hour(hour: str):
         if hour_match is None:
             raise InvalidTimeError(hour)
         return int(hour_match.group(1)) + int(hour_match.group(2)) / 60
+
+def format_hour(hour: float):
+    return f"{math.floor(hour)}:{int((hour % 1) * 60)}"

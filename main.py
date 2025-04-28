@@ -14,7 +14,7 @@ def icon(name: str):
     return tk.PhotoImage(file=f"icons/{name}.png")
 
 def get_month_sleep_info(cur: sql.Cursor, today):
-    cur.execute(f"SELECT * FROM sleep WHERE date LIKE '{today.year}-%{today.month}-%';")
+    cur.execute(f"SELECT * FROM sleep WHERE date LIKE '{today.year}-{today.month:02d}-%';")
     rows = cur.fetchall()
     month_sleep_info = { date.fromisoformat(row[0]).day: row[1:3] for row in rows}
     return month_sleep_info
@@ -23,7 +23,7 @@ def running_sleep_debt(cur: sql.Cursor):
     from itertools import accumulate
     debts = cur.execute("SELECT date, 8 - hours_slept FROM sleep ORDER BY date;").fetchall()
     print(debts)
-    accumulated_sleep_debts = list(accumulate(map(lambda x: x[1] ,debts)))
+    accumulated_sleep_debts = list(accumulate(map(lambda x: x[1] ,debts), lambda acc, x: max(acc + x, 0)))
     print(accumulated_sleep_debts)
 
 def init_db(cur):
@@ -54,7 +54,7 @@ def main():
     con = sql.connect("sleep.db")
     cur = con.cursor()
 
-    init_db(con, cur)
+    init_db(cur)
 
     # Get this month's info
     today = date.today()
