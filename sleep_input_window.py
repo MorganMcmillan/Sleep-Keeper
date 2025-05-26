@@ -11,7 +11,6 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
         messagebox.showwarning("Future Date Selected", f"You cannot enter your sleep information for a date that's in the future. (Today's date is {today})")
         return
 
-    # TODO: show today's information if the user already entered it
     sub = tk.Toplevel(root)
     sub.geometry("500x500")
     
@@ -145,7 +144,7 @@ def validate_hour(hour: str):
     import re
     try: # to parse hour as a decimal
         return float(hour)
-    except: # Maybe it's in the format of "hh:mm"?
+    except Exception as _: # Maybe it's in the format of "hh:mm"?
         hour_match = re.match("(\\d{1,2}):([0-5]\\d)", hour)
         if hour_match is None:
             raise InvalidTimeError(hour)

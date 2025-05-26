@@ -5,6 +5,7 @@ from calendar_widget import Calendar
 from functools import partial
 
 from sleep_input_window import day_clicked
+from sleep_stats_window import sleep_stats_clicked, running_sleep_debt
 
 BACKGROUND = "orange2"
 # TODO: Set this to false for release versions
@@ -18,13 +19,6 @@ def get_month_sleep_info(cur: sql.Cursor, today):
     rows = cur.fetchall()
     month_sleep_info = { date.fromisoformat(row[0]).day: row[1:3] for row in rows}
     return month_sleep_info
-
-def running_sleep_debt(cur: sql.Cursor):
-    from itertools import accumulate
-    debts = cur.execute("SELECT date, 8 - hours_slept FROM sleep ORDER BY date;").fetchall()
-    print(debts)
-    accumulated_sleep_debts = list(accumulate(map(lambda x: x[1] ,debts), lambda acc, x: max(acc + x, 0)))
-    print(accumulated_sleep_debts)
 
 def init_db(cur):
     # `date` is stored in the format of YYYY-MM-DD
@@ -91,7 +85,7 @@ def main():
 
     # TODO: add a window that displays the overall stats of the user's sleep (sleep debt, average bedtime, average wakeup time, Etc.)
     img_bed = icon("bed")
-    btn_sleep_stats = tk.Button(sidebar, width=32, height=32, image=img_bed)
+    btn_sleep_stats = tk.Button(sidebar, width=32, height=32, image=img_bed, command=partial(sleep_stats_clicked, root, con, cur))
     btn_sleep_stats.pack(anchor="n")
 
     # TODO: add a button that allows the user to enter their sleep goals
@@ -102,7 +96,7 @@ def main():
     
     if DEBUG:
         # Bind debug keys
-        root.bind("a", lambda _: running_sleep_debt(cur))
+        root.bind("a", lambda _: print(running_sleep_debt(cur)))
         root.bind("s", lambda _: print(root.winfo_width(), root.winfo_height()))
 
     root.mainloop()
