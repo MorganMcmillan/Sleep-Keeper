@@ -45,11 +45,9 @@ def get_avg_time_of_sleep(cur: sql.Cursor):
     slept_at_len = len(slept_ats)
     for i in range(slept_at_len):
         slept_at = slept_ats[i]
-        if slept_at <= 12:
-            slept_ats[i] = slept_at + 24
+        if slept_ats[i] <= 6:
+            slept_ats[i] = slept_at + 12
     avg_time_of_sleep = sum(slept_ats) / slept_at_len
-    if avg_time_of_sleep >= 24:
-        avg_time_of_sleep -= 24
     return avg_time_of_sleep
 
 def running_sleep_debt(cur: sql.Cursor):

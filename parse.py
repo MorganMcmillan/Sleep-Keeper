@@ -14,9 +14,9 @@ def parse_hour(hour: str):
     return time + int(hour_match.group(2)) / 60
 
 def unparse_hour(hour: float):
-    is_pm = hour >= 12
-    if is_pm:
+    is_am = hour >= 12
+    if is_am:
         hour -= 12
     if hour == 0:
         hour = 12
-    return f"{int(hour)}:{int((hour - int(hour)) * 60):02d} {'PM' if is_pm else 'AM'}"
+    return f"{int(hour)}:{int((hour - int(hour)) * 60):02d} {'AM' if is_am else 'PM'}"

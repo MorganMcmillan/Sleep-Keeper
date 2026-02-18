@@ -31,6 +31,7 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
         update_sleep_info(sleep_info[0], sleep_info[1])
     info_frame.pack(anchor="n")
 
+    # Sleep time entry
     sleep_frame = tk.Frame(sub)
     tk.Label(sleep_frame, text="Enter the time you fell asleep at (Ex: 11:00)").grid(row=0, column=0)
     var_slept_at = tk.StringVar()
@@ -41,6 +42,7 @@ def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Con
     listbox.grid(row=0, column=2)
     sleep_frame.pack(anchor="n")
 
+    # Hours slept entry
     hours_frame = tk.Frame(sub)
     tk.Label(hours_frame, text="Enter hours slept").grid(row=0, column=0)
     var_hours_slept = tk.StringVar()

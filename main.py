@@ -4,12 +4,28 @@ from datetime import date
 from calendar_widget import Calendar
 from functools import partial
 
+from parse import parse_hour
 from sleep_input_window import day_clicked
 from sleep_stats_window import sleep_stats_clicked, running_sleep_debt
+
+# IDEAS:
+# - Import/export to/from CSV
+# - Add arrow buttons for viewing previous months
 
 BACKGROUND = "orange2"
 # TODO: Set this to false for release versions
 DEBUG = True
+
+def dbg_time_slept_parsed(cur: sql.Cursor):
+    cur.execute("SELECT slept_at FROM sleep;")
+    slept_ats = cur.fetchall()
+    slept_ats = list(map(lambda s: parse_hour(s[0]), slept_ats))
+    print("unmassaged:", slept_ats)
+    for i in range(len(slept_ats)):
+        if slept_ats[i] <= 6:
+            slept_ats[i] = slept_ats[i] + 12
+    print("avg:", sum(slept_ats) / len(slept_ats))
+    return slept_ats
 
 def icon(name: str):
     return tk.PhotoImage(file=f"icons/{name}.png")
@@ -17,7 +33,7 @@ def icon(name: str):
 def get_month_sleep_info(cur: sql.Cursor, today):
     cur.execute(f"SELECT * FROM sleep WHERE date LIKE '{today.year}-{today.month:02d}-%';")
     rows = cur.fetchall()
-    month_sleep_info = { date.fromisoformat(row[0]).day: row[1:3] for row in rows}
+    month_sleep_info = { date.fromisoformat(row[0]).day: row[1:3] for row in rows }
     return month_sleep_info
 
 def init_db(cur):
@@ -100,6 +116,7 @@ def main():
         # Bind debug keys
         root.bind("a", lambda _: print(running_sleep_debt(cur)))
         root.bind("s", lambda _: print(root.winfo_width(), root.winfo_height()))
+        root.bind("d", lambda _: print(dbg_time_slept_parsed(cur)))
 
     root.mainloop()
 
