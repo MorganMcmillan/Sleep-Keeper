@@ -38,8 +38,9 @@ def sleep_stats_clicked(root: tk.Tk, con: sql.Connection, cur: sql.Cursor):
     tk.Label(sub, text=f"Best length of sleep: {most_hours_slept} hours").pack(anchor="n")
 
 def get_avg_time_of_sleep(cur: sql.Cursor):
-    slept_ats = cur.execute("SELECT slept_at FROM sleep;").fetchone()[0]
-    slept_ats = map(parse_hour, slept_ats)
+    slept_ats = cur.execute("SELECT slept_at FROM sleep;").fetchall()
+    print(type(slept_ats))
+    slept_ats = list(map(lambda s: parse_hour(s[0]), slept_ats))
     # Hours after 12:00 AM need to be treated as greater than 11:00 PM
     slept_at_len = len(slept_ats)
     for i in range(slept_at_len):

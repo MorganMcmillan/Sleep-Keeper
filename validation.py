@@ -5,6 +5,7 @@ class InvalidTimeError(Exception):
 
 # Checks hour format
 def validate_time(time: str):
+    # TODO: allow shorthand inputs like "11"
     import re
     hour_match = re.search("^1?\\d:[0-5]\\d", time)
     if hour_match is None:

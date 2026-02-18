@@ -2,7 +2,7 @@ from validation import InvalidTimeError
 
 def parse_hour(hour: str):
     import re
-    hour_match = re.match("(\\d{1,2}):([0-5]\\d) ([AP]M)", hour)
+    hour_match = re.match("(\\d{1,2}):([0-5]\\d) ([AP]\\.M\\.)", hour)
     if hour_match is None:
         raise InvalidTimeError(hour)
     time = int(hour_match.group(1))
