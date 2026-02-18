@@ -83,12 +83,14 @@ def main():
     sidebar.place(x=0, y=0)
     sidebar.pack_propagate(False)
 
-    # TODO: add a window that displays the overall stats of the user's sleep (sleep debt, average bedtime, average wakeup time, Etc.)
     img_bed = icon("bed")
     btn_sleep_stats = tk.Button(sidebar, width=32, height=32, image=img_bed, command=partial(sleep_stats_clicked, root, con, cur))
     btn_sleep_stats.pack(anchor="n")
 
     # TODO: add a button that allows the user to enter their sleep goals
+    img_medal = icon("medal")
+    btn_sleep_goals = tk.Button(sidebar, width=32, height=32, image=img_medal)
+    btn_sleep_goals.pack(anchor="n")
 
     # Bind events
     root.bind("<<today's_info_deleted>>", lambda _: add_today_button())
