@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import sqlite3 as sql
 from datetime import date
-from parser import parse_time, unparse_time
+from parse import parse_hour, unparse_hour
 
 # TODO: display the following:
 # Date of best sleep time
@@ -18,7 +18,7 @@ def sleep_stats_clicked(root: tk.Tk, con: sql.Connection, cur: sql.Cursor):
     avg_hours_slept = cur.fetchone()[0]
 
     avg_time_of_sleep = get_avg_time_of_sleep(cur)
-    avg_time_of_sleep_str = unparse_time(avg_time_of_sleep)
+    avg_time_of_sleep_str = unparse_hour(avg_time_of_sleep)
 
     current_sleep_debt = running_sleep_debt(cur)[-1]
 
@@ -39,7 +39,7 @@ def sleep_stats_clicked(root: tk.Tk, con: sql.Connection, cur: sql.Cursor):
 
 def get_avg_time_of_sleep(cur: sql.Cursor):
     slept_ats = cur.execute("SELECT slept_at FROM sleep;").fetchone()[0]
-    slept_ats = map(parse_time, slept_ats)
+    slept_ats = map(parse_hour, slept_ats)
     # Hours after 12:00 AM need to be treated as greater than 11:00 PM
     slept_at_len = len(slept_ats)
     for i in range(slept_at_len):

@@ -13,7 +13,7 @@ def parse_hour(hour: str):
         time += 12
     return time + int(hour_match.group(2)) / 60
 
-def unparse_time(hour: float):
+def unparse_hour(hour: float):
     is_pm = hour >= 12
     if is_pm:
         hour -= 12
