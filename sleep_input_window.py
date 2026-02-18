@@ -5,6 +5,8 @@ from idlelib.tooltip import Hovertip
 import sqlite3 as sql
 from datetime import date
 
+from validation import validate_hour, validate_time, InvalidTimeError
+
 def day_clicked(button: tk.Button, current_date: date, root: tk.Tk, con: sql.Connection, cur: sql.Cursor):
     today = date.today()
     if current_date > today:
@@ -117,38 +119,13 @@ def get_sleep_color(hours_slept: float, hours_of_sleep_needed: float):
         return ("green2", "black")
     else:
         return ("blue2", "white")
-    
+
 def delete_children(widget):
+    # The children need to be iterated from a list because the widget itself is modified
+    # Format: maybe replace with the *unpack
     children = [v for v in widget.children.values()]
     for child in children:
         child.destroy()
-
-class InvalidTimeError(Exception):
-    def __init__(self, malformed_hour):
-        message = f"Invalid hour entered. Hours should contain only numbers, and be within the range of 1:00 to 12:59. (Got: {malformed_hour})"
-        super().__init__(message)
-
-# Checks hour format
-def validate_time(time: str):
-    import re
-    hour_match = re.search("^1?\\d:[0-5]\\d", time)
-    if hour_match is None:
-        raise InvalidTimeError(time)
-    
-    am_pm_match = re.search("[A|P]\\.M\\.", time)
-    if am_pm_match is None:
-        raise InvalidTimeError(time)
-    return hour_match.group(0) + " " + am_pm_match.group(0)
-
-def validate_hour(hour: str):
-    import re
-    try: # to parse hour as a decimal
-        return float(hour)
-    except Exception as _: # Maybe it's in the format of "hh:mm"?
-        hour_match = re.match("(\\d{1,2}):([0-5]\\d)", hour)
-        if hour_match is None:
-            raise InvalidTimeError(hour)
-        return int(hour_match.group(1)) + int(hour_match.group(2)) / 60
 
 def format_hour(hour: float):
     return f"{math.floor(hour)}:{int((hour % 1) * 60)}"
